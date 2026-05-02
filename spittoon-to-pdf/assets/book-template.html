@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{ book_title }}</title>
+<style>
+  /* WeasyPrint-friendly print CSS for a book interior.
+     Defaults: 6x9 trim, EB Garamond 11/15, drop caps, running heads,
+     page numbers bottom-outer. Override via design.md by regenerating
+     this file with substituted variables. */
+
+  @page {
+    size: {{ trim_width }} {{ trim_height }};
+    margin-top: {{ margin_top }};
+    margin-bottom: {{ margin_bottom }};
+  }
+  @page :left {
+    margin-left: {{ margin_outer }};
+    margin-right: {{ margin_inner }};
+    @top-left { content: string(book-title); font-family: '{{ heading_font }}', serif; font-size: 9pt; font-style: italic; }
+    @bottom-left { content: counter(page); font-family: '{{ body_font }}', serif; font-size: 10pt; }
+  }
+  @page :right {
+    margin-left: {{ margin_inner }};
+    margin-right: {{ margin_outer }};
+    @top-right { content: string(chapter-title); font-family: '{{ heading_font }}', serif; font-size: 9pt; font-style: italic; }
+    @bottom-right { content: counter(page); font-family: '{{ body_font }}', serif; font-size: 10pt; }
+  }
+  @page chapter-opener {
+    @top-left { content: ""; }
+    @top-right { content: ""; }
+  }
+
+  html { font-family: '{{ body_font }}', Georgia, serif; }
+  body { margin: 0; }
+
+  .chapter {
+    page-break-before: right;
+    page: chapter-opener;
+  }
+  .chapter:first-of-type { page-break-before: avoid; }
+
+  .chapter-number {
+    font-family: '{{ heading_font }}', serif;
+    font-size: 14pt;
+    font-variant: small-caps;
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-top: 1.5in;
+    margin-bottom: 0.25in;
+  }
+
+  .chapter-title {
+    font-family: '{{ heading_font }}', serif;
+    font-size: 22pt;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 0.75in;
+    string-set: chapter-title content();
+  }
+
+  .epigraph {
+    font-style: italic;
+    font-size: 10pt;
+    text-align: center;
+    max-width: 60%;
+    margin: 0 auto 0.5in;
+    line-height: 14pt;
+  }
+
+  .chapter-body {
+    font-size: {{ body_size }};
+    line-height: {{ body_leading }};
+    text-align: justify;
+    hyphens: auto;
+    text-indent: 1.5em;
+  }
+  .chapter-body p { margin: 0; text-indent: 1.5em; }
+  .chapter-body p:first-of-type { text-indent: 0; }
+
+  /* Drop cap on the first paragraph of each chapter */
+  .chapter-body p.opener::first-letter {
+    font-family: '{{ heading_font }}', serif;
+    font-size: 3.4em;
+    float: left;
+    line-height: 0.85;
+    margin: 0.05em 0.08em -0.1em 0;
+  }
+  /* Small caps on the first words of the opening paragraph */
+  .chapter-body p.opener .smallcaps {
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+  }
+
+  /* Set the book-title string once, on the title page */
+  .title-page { string-set: book-title content(); }
+
+  .scene-break {
+    text-align: center;
+    margin: 1.2em 0;
+    letter-spacing: 0.5em;
+  }
+
+  /* Title page */
+  .title-page {
+    page-break-after: right;
+    text-align: center;
+    margin-top: 3in;
+  }
+  .title-page h1 {
+    font-family: '{{ heading_font }}', serif;
+    font-size: 32pt;
+    font-weight: normal;
+    margin: 0 0 0.5in;
+  }
+  .title-page .author {
+    font-family: '{{ body_font }}', serif;
+    font-size: 14pt;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="title-page">
+  <h1>{{ book_title }}</h1>
+  {% if author %}<div class="author">{{ author }}</div>{% endif %}
+</div>
+
+{% for chapter in chapters %}
+<section class="chapter">
+  <div class="chapter-number">Chapter {{ chapter.number }}</div>
+  <h2 class="chapter-title">{{ chapter.title }}</h2>
+  {% if chapter.epigraph %}
+  <div class="epigraph">{{ chapter.epigraph }}</div>
+  {% endif %}
+  <div class="chapter-body">
+    {{ chapter.body_html | safe }}
+  </div>
+</section>
+{% endfor %}
+
+</body>
+</html>
