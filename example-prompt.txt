@@ -1,0 +1,15 @@
+Use the spittoon-to-pdf skill to assemble these pages into an A5 book PDF.
+Pages: [attach files in reading order]
+design.md:
+
+Trim: A5 (148 × 210 mm)
+Margins: top 15 mm, bottom 18 mm, inner 18 mm, outer 14 mm
+Body: EB Garamond, 10.5 pt on 14 pt leading, justified, hyphenation on
+Heading font: Cormorant Garamond
+Chapter openers: start on recto, 3-line drop cap, first 5 words in small caps, no page number or running head on the opener
+Running heads: book title verso, chapter title recto, small caps, centred
+Page numbers: bottom outer, suppressed on openers and blank versos
+Section breaks: centred * * *
+Epigraphs: italic indented, attribution in roman small caps below
+
+Embed fonts via @font-face from Google Fonts. Run parallelisable prep steps concurrently. Save outputs to /mnt/user-data/outputs/ and present them at the end with the honest-disclosure summary.
