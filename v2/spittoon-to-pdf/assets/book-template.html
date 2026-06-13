@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ book_title }}</title>
+
+<!-- Fonts via Google Fonts css2 @import (built by build_book_html.py from the
+     spec's body_font + smallcaps_font). IMPORTANT: Google's css2 endpoint
+     strips OpenType features (smcp, onum) from every served subset, so
+     `font-variant-caps: small-caps` and `font-feature-settings:"smcp"` are
+     no-ops with Google-served fonts. True small caps are therefore realized
+     by switching font-family to a DEDICATED small-caps sibling family
+     (e.g. "Alegreya SC"), whose lowercase glyphs ARE small capitals. The
+     default body face (Alegreya) also defaults to old-style figures, which
+     satisfies design.md's onum requirement without the onum feature. -->
+{{ font_import }}
+<style>
+  /* ---------- Page geometry ---------- */
+  @page {
+    size: {{ trim_width }} {{ trim_height }};
+    margin-top: {{ margin_top }};
+    margin-bottom: {{ margin_bottom }};
+  }
+  /* Verso (left-hand): outer margin on the LEFT. */
+  @page :left {
+    margin-left: {{ margin_outer }};
+    margin-right: {{ margin_inner }};
+    @top-center {
+      content: string(book-title);
+      font-family: '{{ smallcaps_font }}', serif;   /* small caps via SC family */
+      font-size: 8.5pt;
+      letter-spacing: 0.05em;        /* ≈ +50 */
+      vertical-align: bottom;
+      padding-bottom: 6mm;
+      color: #222;
+    }
+    @bottom-left {
+      content: counter(page);
+      font-family: '{{ body_font }}', serif;          /* old-style figures by default */
+      font-size: 8.5pt;
+      vertical-align: top;
+      padding-top: 14mm;
+      color: #222;
+    }
+  }
+  /* Recto (right-hand): outer margin on the RIGHT. */
+  @page :right {
+    margin-left: {{ margin_inner }};
+    margin-right: {{ margin_outer }};
+    @top-center {
+      content: string(chapter-title);
+      font-family: '{{ smallcaps_font }}', serif;
+      font-size: 8.5pt;
+      letter-spacing: 0.05em;
+      vertical-align: bottom;
+      padding-bottom: 6mm;
+      color: #222;
+    }
+    @bottom-right {
+      content: counter(page);
+      font-family: '{{ body_font }}', serif;
+      font-size: 8.5pt;
+      vertical-align: top;
+      padding-top: 14mm;
+      color: #222;
+    }
+  }
+  /* Opener-page furniture suppression. Each chapter is its own page GROUP
+     (classes alternate grp-a / grp-b so consecutive chapters do not merge into
+     one group); :nth(1 of grpX) matches ONLY the first page of each chapter,
+     leaving running heads + folios live on every following page. Using a named
+     page for the whole chapter (page: chapter-opener) is the historic bug that
+     suppressed heads/folios book-wide — do NOT reintroduce it. */
+  @page :nth(1 of grp-a) {
+    @top-center { content: ""; } @top-left { content: ""; } @top-right { content: ""; }
+    @bottom-left { content: ""; } @bottom-right { content: ""; } @bottom-center { content: ""; }
+  }
+  @page :nth(1 of grp-b) {
+    @top-center { content: ""; } @top-left { content: ""; } @top-right { content: ""; }
+    @bottom-left { content: ""; } @bottom-right { content: ""; } @bottom-center { content: ""; }
+  }
+  /* Blank versos produced by page-break-before: right. */
+  @page :blank {
+    @top-center { content: ""; } @top-left { content: ""; } @top-right { content: ""; }
+    @bottom-left { content: ""; } @bottom-right { content: ""; }
+  }
+  /* Title page. */
+  @page :first {
+    @top-center { content: ""; } @top-left { content: ""; } @top-right { content: ""; }
+    @bottom-left { content: ""; } @bottom-right { content: ""; } @bottom-center { content: ""; }
+  }
+  /* Blank pad leaves appended to reach a multiple of 4 — no furniture. */
+  @page pad {
+    @top-center { content: ""; } @top-left { content: ""; } @top-right { content: ""; }
+    @bottom-left { content: ""; } @bottom-right { content: ""; } @bottom-center { content: ""; }
+  }
+
+  /* ---------- Document defaults ---------- */
+  html {
+    font-family: '{{ body_font }}', Georgia, serif;
+    color: #111;
+    /* Ligatures + kerning; old-style figures are the font default for Alegreya. */
+    font-feature-settings: "liga" 1, "clig" 1, "kern" 1;
+    font-variant-ligatures: common-ligatures;
+  }
+  body { margin: 0; }
+
+  /* ---------- Title page ---------- */
+  .title-page {
+    string-set: book-title "{{ book_title }}";
+    page-break-after: right;
+    text-align: center;
+    margin-top: 56mm;
+  }
+  .title-page h1 {
+    font-family: '{{ smallcaps_font }}', serif;   /* small caps */
+    font-size: 21pt;                  /* part-title size from the type scale */
+    font-weight: 400;
+    letter-spacing: 0.04em;           /* ≈ +40 */
+    margin: 0 0 16mm;
+    line-height: 28pt;
+  }
+  .title-page .subtitle {
+    font-family: '{{ body_font }}', serif;
+    font-size: 10.5pt;
+    font-style: italic;
+    line-height: 14pt;
+  }
+
+  /* ---------- Chapter sections + page groups ---------- */
+  .chapter { page-break-before: right; }
+  .chapter.grp-a { page: grp-a; }
+  .chapter.grp-b { page: grp-b; }
+
+  /* ~11 baseline lines drop from the top of the opener: 14pt × 11 ≈ 54mm. */
+  .chapter-number {
+    font-family: '{{ smallcaps_font }}', serif;
+    font-size: 11.8pt;                  /* chapter number */
+    font-weight: 400;
+    letter-spacing: 0.08em;             /* +80 */
+    text-align: center;
+    margin: 54mm 0 7mm 0;
+    color: #222;
+  }
+  .chapter-title {
+    font-family: '{{ smallcaps_font }}', serif;
+    font-size: 14pt;                    /* chapter title */
+    font-weight: 400;
+    letter-spacing: 0.06em;             /* +60 */
+    text-align: center;
+    margin: 0 0 28mm 0;
+    line-height: 21pt;
+    string-set: chapter-title content();
+  }
+  .chapter-title.has-subtitle { margin-bottom: 7mm; }
+  .chapter-subtitle {
+    font-family: '{{ body_font }}', serif;
+    font-size: 10.5pt;
+    font-style: italic;
+    line-height: 14pt;
+    text-align: center;
+    margin: 0 0 21mm 0;
+  }
+
+  .epigraph {
+    font-family: '{{ body_font }}', serif;
+    font-style: italic;
+    font-size: 10pt;
+    line-height: 14pt;
+    text-align: left;
+    margin: 0 18mm 7mm 18mm;
+  }
+  .epigraph .attribution {
+    display: block;
+    margin-top: 4mm;
+    font-style: normal;
+    font-family: '{{ smallcaps_font }}', serif;
+    letter-spacing: 0.05em;
+    font-size: 9pt;
+    text-align: right;
+  }
+
+  /* ---------- Body type ---------- */
+  .chapter-body {
+    font-family: '{{ body_font }}', Georgia, serif;
+    font-size: {{ body_size }};
+    line-height: {{ body_leading }};
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphenate-limit-chars: 6 3 3;       /* 6-char minimum word */
+    hyphenate-limit-lines: 2;           /* max 2 consecutive hyphenated lines */
+    orphans: 2;
+    widows: 2;
+  }
+  .chapter-body p { margin: 0; text-indent: 1em; }
+  /* Flush-left, no indent: first paragraph, and paragraphs after a break/head. */
+  .chapter-body p:first-of-type,
+  .chapter-body .scene-break + p,
+  .chapter-body .section-head + p { text-indent: 0; }
+
+  /* Small-caps lead-in for a plain-prose opening paragraph (first few words). */
+  .chapter-body p.opener .smallcaps {
+    font-family: '{{ smallcaps_font }}', serif;
+    letter-spacing: 0.025em;            /* +25 */
+  }
+
+  /* Speaker / log label (interview & epistolary formats): small caps, tracked
+     +25. Replaces source bold labels — no bold in fiction prose per design.md. */
+  .speaker {
+    font-family: '{{ smallcaps_font }}', serif;
+    letter-spacing: 0.025em;
+    font-style: normal;
+  }
+
+  /* In-body section head: small caps at body size, tracked +60, centred. */
+  .section-head {
+    font-family: '{{ smallcaps_font }}', serif;
+    font-size: 10.5pt;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-indent: 0;
+    margin: 28pt 0 14pt 0;
+    page-break-after: avoid;
+  }
+
+  /* Section break: asterisks separated by em-spaces (avoids the U+2042
+     asterism glyph, which many Google-served fonts lack). */
+  .scene-break {
+    text-align: center;
+    text-indent: 0;
+    margin: 14pt 0;
+    font-family: '{{ body_font }}', serif;
+    font-size: 10.5pt;
+    line-height: 14pt;
+    letter-spacing: 0;
+  }
+
+  /* End matter for a final chapter. */
+  .end-mark {
+    font-family: '{{ smallcaps_font }}', serif;
+    font-size: 11.8pt;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-indent: 0;
+    margin: 28pt 0 14pt 0;
+  }
+  .closing-quote {
+    font-style: italic;
+    font-size: 10pt;
+    line-height: 14pt;
+    text-align: justify;
+    text-indent: 0 !important;
+    margin: 0 10mm 14pt 10mm;
+  }
+  .closing-attribution {
+    font-family: '{{ smallcaps_font }}', serif;
+    letter-spacing: 0.05em;
+    font-size: 9pt;
+    line-height: 14pt;
+    text-align: right;
+    text-indent: 0;
+    margin: 0 10mm 0 10mm;
+  }
+
+  /* Markdown emphasis. Bold disabled in body prose per design.md (italic
+     carries emphasis); strong is styled as italic, never bold. */
+  em { font-style: italic; }
+  strong { font-weight: 400; font-style: italic; }
+
+  /* Blank leaves appended to reach a multiple of 4 pages. */
+  .pad-leaf { page: pad; page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="title-page">
+  <h1>{{ book_title }}</h1>
+  <div class="subtitle">{{ book_subtitle }}</div>
+</div>
+
+{{ chapters_html }}
+
+</body>
+</html>
